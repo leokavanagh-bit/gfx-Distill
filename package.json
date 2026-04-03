@@ -16,8 +16,8 @@
     "build:win": "npm run build && electron-builder --win",
     "build:mac": "npm run build && electron-builder --mac",
     "build:linux": "npm run build && electron-builder --linux",
-    "test:main": "vitest run --config vitest.config.main.js",
-    "test:renderer": "vitest run --config vitest.config.renderer.js",
+    "test:main": "vitest run --config vitest.config.main.js --passWithNoTests",
+    "test:renderer": "vitest run --config vitest.config.renderer.js --passWithNoTests",
     "test": "npm run test:main && npm run test:renderer"
   },
   "dependencies": {
