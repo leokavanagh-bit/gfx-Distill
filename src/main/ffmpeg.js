@@ -4,12 +4,13 @@ import ffprobeStatic from 'ffprobe-static'
 import fs from 'fs/promises'
 import os from 'os'
 import path from 'path'
+import { app } from 'electron'
 
-const ffmpegBin = process.resourcesPath
+const ffmpegBin = app.isPackaged
   ? path.join(process.resourcesPath, 'ffmpeg', process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg')
   : ffmpegStatic
 
-const ffprobeBin = process.resourcesPath
+const ffprobeBin = app.isPackaged
   ? path.join(process.resourcesPath, 'ffmpeg', process.platform === 'win32' ? 'ffprobe.exe' : 'ffprobe')
   : ffprobeStatic.path
 
@@ -38,9 +39,14 @@ export function extractFrame(inputPath, seconds) {
           resolve(`data:image/png;base64,${data.toString('base64')}`)
         } catch (e) {
           reject(e)
+        } finally {
+          await fs.unlink(tmpFile).catch(() => {})
         }
       })
-      .on('error', reject)
+      .on('error', async (err) => {
+        await fs.unlink(tmpFile).catch(() => {})
+        reject(err)
+      })
       .run()
   })
 }

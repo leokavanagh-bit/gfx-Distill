@@ -15,6 +15,8 @@ const mockFfmpegInstance = {
   run: vi.fn(),
 }
 
+vi.mock('electron', () => ({ app: { isPackaged: false } }))
+
 vi.mock('fluent-ffmpeg', () => {
   const ffmpeg = vi.fn(() => mockFfmpegInstance)
   ffmpeg.setFfmpegPath = vi.fn()
@@ -26,10 +28,22 @@ vi.mock('fluent-ffmpeg', () => {
 vi.mock('ffmpeg-static', () => ({ default: '/mock/ffmpeg' }))
 vi.mock('ffprobe-static', () => ({ default: { path: '/mock/ffprobe' } }))
 vi.mock('fs/promises', () => ({
-  default: { readFile: vi.fn().mockResolvedValue(Buffer.from('pngdata')) }
+  default: {
+    readFile: vi.fn().mockResolvedValue(Buffer.from('pngdata')),
+    unlink: vi.fn().mockResolvedValue()
+  }
 }))
 
-beforeEach(() => vi.clearAllMocks())
+beforeEach(() => {
+  vi.clearAllMocks()
+  mockFfmpegInstance.seekInput.mockReturnThis()
+  mockFfmpegInstance.frames.mockReturnThis()
+  mockFfmpegInstance.output.mockReturnThis()
+  mockFfmpegInstance.on.mockImplementation(function(event, cb) {
+    if (event === 'end') setTimeout(cb, 0)
+    return this
+  })
+})
 
 describe('getDuration', () => {
   it('returns duration in seconds from ffprobe metadata', async () => {
@@ -47,11 +61,20 @@ describe('getDuration', () => {
 describe('extractFrame', () => {
   it('returns a base64 data URL string', async () => {
     const result = await extractFrame('/path/to/file.mxf', 30)
-    expect(result).toMatch(/^data:image\/png;base64,/)
+    const expected = `data:image/png;base64,${Buffer.from('pngdata').toString('base64')}`
+    expect(result).toBe(expected)
   })
 
   it('seeks to the specified seconds', async () => {
     await extractFrame('/path/to/file.mxf', 45)
     expect(mockFfmpegInstance.seekInput).toHaveBeenCalledWith(45)
+  })
+
+  it('rejects when ffmpeg emits an error', async () => {
+    mockFfmpegInstance.on.mockImplementation(function(event, cb) {
+      if (event === 'error') setTimeout(() => cb(new Error('ffmpeg failed')), 0)
+      return this
+    })
+    await expect(extractFrame('/path/to/file.mxf', 30)).rejects.toThrow('ffmpeg failed')
   })
 })
