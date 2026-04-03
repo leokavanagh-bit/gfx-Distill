@@ -78,6 +78,23 @@ describe('executeSend', () => {
     expect(fs.unlink).toHaveBeenCalled()
   })
 
+  it('handles UNC paths without trailing backslash', async () => {
+    const paramsNoTrail = {
+      ...PARAMS,
+      studio: { name: 'London', uncPath: '\\\\lon-gv01\\watch' },  // no trailing backslash
+      pngWatchFolder: '\\\\server\\png_watch',  // no trailing backslash
+    }
+    await executeSend(paramsNoTrail, () => {})
+    expect(copyFile).toHaveBeenCalledWith(
+      '/renders/MyShow.mxf',
+      '\\\\lon-gv01\\watch\\MyShow.mxf'
+    )
+    expect(copyFile).toHaveBeenCalledWith(
+      expect.stringContaining('MyShow'),
+      '\\\\server\\png_watch\\MyShow.png'
+    )
+  })
+
   it('cleans up temp PNG on failure and rethrows with failed step', async () => {
     copyFile.mockRejectedValueOnce(new Error('Network unreachable'))
     const progress = []

@@ -16,7 +16,8 @@ export async function executeSend(params, onProgress) {
     currentStep = 'extracting'
     onProgress({ step: 'extracting', message: 'Extracting frame...' })
     const base64 = await extractFrame(mxfPath, scrubSeconds)
-    const pngData = Buffer.from(base64.replace('data:image/png;base64,', ''), 'base64')
+    const base64Data = base64.includes(',') ? base64.split(',')[1] : base64
+    const pngData = Buffer.from(base64Data, 'base64')
     await fs.writeFile(tmpPng, pngData)
 
     // Step 2: Write XMP metadata
@@ -28,7 +29,7 @@ export async function executeSend(params, onProgress) {
     currentStep = 'copying-mxf'
     onProgress({ step: 'copying-mxf', message: `Sending MXF to ${studio.name}...` })
     const mxfDest = studio.uncPath.startsWith('\\\\')
-      ? studio.uncPath + `${baseName}.mxf`
+      ? studio.uncPath.replace(/\\+$/, '') + '\\' + `${baseName}.mxf`
       : path.join(studio.uncPath, `${baseName}.mxf`)
     await copyFile(mxfPath, mxfDest)
 
@@ -36,7 +37,7 @@ export async function executeSend(params, onProgress) {
     currentStep = 'copying-png'
     onProgress({ step: 'copying-png', message: 'Sending PNG to approval folder...' })
     const pngDest = pngWatchFolder.startsWith('\\\\')
-      ? pngWatchFolder + `${baseName}.png`
+      ? pngWatchFolder.replace(/\\+$/, '') + '\\' + `${baseName}.png`
       : path.join(pngWatchFolder, `${baseName}.png`)
     await copyFile(tmpPng, pngDest)
 
