@@ -13,7 +13,10 @@ contextBridge.exposeInMainWorld('api', {
   },
   send: {
     execute: (params) => ipcRenderer.invoke('send:execute', params),
-    onProgress: (callback) => ipcRenderer.on('send:progress', (_, data) => callback(data)),
+    onProgress: (callback) => {
+      ipcRenderer.removeAllListeners('send:progress')
+      ipcRenderer.on('send:progress', (_, data) => callback(data))
+    },
     removeProgressListeners: () => ipcRenderer.removeAllListeners('send:progress'),
   },
   dialog: {
