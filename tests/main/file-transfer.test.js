@@ -24,7 +24,7 @@ describe('copyFile', () => {
     fs.mkdir.mockResolvedValue()
     fs.copyFile.mockResolvedValue()
     await copyFile('/src/file.mxf', '\\\\server\\watch\\file.mxf')
-    expect(fs.mkdir).toHaveBeenCalledWith('\\\\server\\watch', { recursive: true })
+    expect(fs.mkdir).toHaveBeenCalledWith('\\\\server\\watch\\', { recursive: true })
   })
 
   it('rejects with error when copy fails', async () => {
@@ -32,5 +32,19 @@ describe('copyFile', () => {
     fs.copyFile.mockRejectedValue(new Error('Network unreachable'))
     await expect(copyFile('/src/file.mxf', '\\\\server\\watch\\file.mxf'))
       .rejects.toThrow('Network unreachable')
+  })
+
+  it('handles posix paths (/Volumes/...)', async () => {
+    fs.mkdir.mockResolvedValue()
+    fs.copyFile.mockResolvedValue()
+    await copyFile('/renders/MyShow.mxf', '/Volumes/london/watch/MyShow.mxf')
+    expect(fs.mkdir).toHaveBeenCalledWith('/Volumes/london/watch', { recursive: true })
+    expect(fs.copyFile).toHaveBeenCalledWith('/renders/MyShow.mxf', '/Volumes/london/watch/MyShow.mxf')
+  })
+
+  it('rejects with error when directory creation fails', async () => {
+    fs.mkdir.mockRejectedValue(new Error('Permission denied'))
+    await expect(copyFile('/src/file.mxf', '\\\\server\\watch\\file.mxf'))
+      .rejects.toThrow('Permission denied')
   })
 })
