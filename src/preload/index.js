@@ -1,20 +1,32 @@
-import { contextBridge } from 'electron'
-import { electronAPI } from '@electron-toolkit/preload'
+import { contextBridge, ipcRenderer } from 'electron'
 
-// Custom APIs for renderer
-const api = {}
-
-// Use `contextBridge` APIs to expose Electron APIs to
-// renderer only if context isolation is enabled, otherwise
-// just add to the DOM global.
-if (process.contextIsolated) {
-  try {
-    contextBridge.exposeInMainWorld('electron', electronAPI)
-    contextBridge.exposeInMainWorld('api', api)
-  } catch (error) {
-    console.error(error)
+contextBridge.exposeInMainWorld('api', {
+  config: {
+    load: () => ipcRenderer.invoke('config:load'),
+    save: (config) => ipcRenderer.invoke('config:save', config),
+    exportConfig: () => ipcRenderer.invoke('config:export'),
+    importConfig: () => ipcRenderer.invoke('config:import'),
+  },
+  ffmpeg: {
+    getDuration: (filePath) => ipcRenderer.invoke('ffmpeg:get-duration', filePath),
+    extractFrame: (filePath, seconds) => ipcRenderer.invoke('ffmpeg:extract-frame', filePath, seconds),
+  },
+  send: {
+    execute: (params) => ipcRenderer.invoke('send:execute', params),
+    onProgress: (callback) => ipcRenderer.on('send:progress', (_, data) => callback(data)),
+    removeProgressListeners: () => ipcRenderer.removeAllListeners('send:progress'),
+  },
+  dialog: {
+    openFolder: () => ipcRenderer.invoke('dialog:open-folder'),
+    openFile: (filters) => ipcRenderer.invoke('dialog:open-file', filters),
+    saveFile: (filters) => ipcRenderer.invoke('dialog:save-file', filters),
+  },
+  navigation: {
+    onGoAdmin: (callback) => ipcRenderer.on('nav:admin', callback),
+    onGoMain: (callback) => ipcRenderer.on('nav:main', callback),
+    removeListeners: () => {
+      ipcRenderer.removeAllListeners('nav:admin')
+      ipcRenderer.removeAllListeners('nav:main')
+    }
   }
-} else {
-  window.electron = electronAPI
-  window.api = api
-}
+})
