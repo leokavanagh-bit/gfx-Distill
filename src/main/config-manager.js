@@ -16,7 +16,7 @@ export async function loadConfig() {
     const raw = await fs.readFile(configPath(), 'utf-8')
     return JSON.parse(raw)
   } catch (err) {
-    if (err.code === 'ENOENT') return DEFAULT_CONFIG
+    if (err.code === 'ENOENT') return { ...DEFAULT_CONFIG, studios: [...DEFAULT_CONFIG.studios] }
     throw err
   }
 }

@@ -10,7 +10,6 @@ vi.mock('fs/promises', () => ({
   default: {
     readFile: vi.fn(),
     writeFile: vi.fn(),
-    copyFile: vi.fn(),
   }
 }))
 
