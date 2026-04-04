@@ -1,28 +1,42 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 export function FrameScrubber({ mxfPath, onFrameChange }) {
   const [duration, setDuration] = useState(0)
   const [seconds, setSeconds] = useState(0)
   const [frameUrl, setFrameUrl] = useState(null)
   const [loading, setLoading] = useState(false)
+  // Sequence counter: incremented whenever a new extraction starts.
+  // Each async job captures its own seq value; if it no longer matches
+  // current on completion, the result is discarded.
+  const seqRef = useRef(0)
 
   useEffect(() => {
     if (!mxfPath) return
+    let cancelled = false
     setSeconds(0)
     setFrameUrl(null)
+
     window.api.ffmpeg.getDuration(mxfPath).then((d) => {
+      if (cancelled) return
       setDuration(d)
-      extractAt(0)
+      extractAt(0, mxfPath)
     })
+
+    return () => { cancelled = true }
   }, [mxfPath])
 
-  async function extractAt(secs) {
+  async function extractAt(secs, path) {
+    const seq = ++seqRef.current
     setLoading(true)
     try {
-      const url = await window.api.ffmpeg.extractFrame(mxfPath, secs)
-      setFrameUrl(url)
+      const url = await window.api.ffmpeg.extractFrame(path, secs)
+      if (seq === seqRef.current) {
+        setFrameUrl(url)
+      }
     } finally {
-      setLoading(false)
+      if (seq === seqRef.current) {
+        setLoading(false)
+      }
     }
   }
 
@@ -30,7 +44,7 @@ export function FrameScrubber({ mxfPath, onFrameChange }) {
     const secs = parseFloat(e.target.value)
     setSeconds(secs)
     onFrameChange(secs)
-    await extractAt(secs)
+    await extractAt(secs, mxfPath)
   }
 
   if (!mxfPath) {
