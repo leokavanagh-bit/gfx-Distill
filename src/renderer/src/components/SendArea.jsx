@@ -10,8 +10,20 @@ export function SendArea({ params }) {
   if (status === 'sending') {
     return (
       <div>
+        <style>{`
+          @keyframes gfx-pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
+          }
+        `}</style>
         <div style={{ background: '#222', borderRadius: 4, height: 8, overflow: 'hidden' }}>
-          <div style={{ background: '#e94560', height: '100%', width: '60%', transition: 'width 0.3s' }} />
+          <div style={{
+            background: '#e94560',
+            height: '100%',
+            width: '60%',
+            animation: 'gfx-pulse 1.2s ease-in-out infinite',
+          }} />
         </div>
         <p style={{ fontSize: 12, color: '#888', marginTop: 6 }}>{progressMessage}</p>
       </div>

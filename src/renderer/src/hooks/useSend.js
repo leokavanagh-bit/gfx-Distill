@@ -17,7 +17,7 @@ export function useSend() {
         setProgressMessage(data.message)
       }
     })
-    return () => window.api.send?.removeProgressListeners()
+    return () => window.api.send?.removeProgressListeners?.()
   }, [])
 
   async function execute(params) {
@@ -26,7 +26,7 @@ export function useSend() {
     setProgressMessage('Starting...')
     try {
       await window.api.send.execute(params)
-      setStatus('complete')
+      // complete status is set by onProgress handler when step === 'complete'
     } catch (err) {
       setError(err.message)
       setStatus('error')

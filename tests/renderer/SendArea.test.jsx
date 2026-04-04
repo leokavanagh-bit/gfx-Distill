@@ -52,4 +52,22 @@ describe('SendArea', () => {
     fireEvent.click(screen.getByRole('button', { name: /send/i }))
     await waitFor(() => expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument())
   })
+
+  it('shows progress message when onProgress fires during sending', async () => {
+    let progressCallback
+    window.api.send.onProgress = vi.fn((cb) => { progressCallback = cb })
+    // Make execute hang so we can observe the sending state
+    window.api.send.execute = vi.fn(() => new Promise(() => {}))
+
+    render(<SendArea params={readyParams} />)
+    fireEvent.click(screen.getByRole('button', { name: /send/i }))
+
+    // Fire a progress event
+    await waitFor(() => expect(progressCallback).toBeDefined())
+    progressCallback({ step: 'copying-mxf', message: 'Sending MXF to London...' })
+
+    await waitFor(() =>
+      expect(screen.getByText('Sending MXF to London...')).toBeInTheDocument()
+    )
+  })
 })
