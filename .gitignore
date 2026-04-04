@@ -1,6 +1,12 @@
 node_modules
 dist
 out
+dist-electron/
 .DS_Store
 .eslintcache
 *.log*
+resources/ffmpeg/mac/ffmpeg
+resources/ffmpeg/mac/ffprobe
+resources/ffmpeg/win/ffmpeg.exe
+resources/ffmpeg/win/ffprobe.exe
+.superpowers/

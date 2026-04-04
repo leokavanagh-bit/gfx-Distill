@@ -1,23 +1,36 @@
-appId: com.electron.app
-productName: gfx-distributor
+appId: com.gfxteam.distributor
+productName: GFX Distributor
+copyright: Copyright © 2026
+
 directories:
   buildResources: build
+  output: dist-electron
+
 files:
   - '!**/.vscode/*'
   - '!src/*'
   - '!electron.vite.config.{js,ts,mjs,cjs}'
   - '!{.eslintcache,eslint.config.mjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
   - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
+
 asarUnpack:
   - resources/**
-win:
-  executableName: gfx-distributor
-nsis:
-  artifactName: ${name}-${version}-setup.${ext}
-  shortcutName: ${productName}
-  uninstallDisplayName: ${productName}
-  createDesktopShortcut: always
+
+# macOS: bundle mac ffmpeg binaries
+extraResources:
+  - from: resources/ffmpeg/mac
+    to: ffmpeg
+    filter:
+      - ffmpeg
+      - ffprobe
+
 mac:
+  target:
+    - target: dmg
+      arch:
+        - arm64
+        - x64
+  category: public.app-category.video
   entitlementsInherit: build/entitlements.mac.plist
   extendInfo:
     - NSCameraUsageDescription: Application requests access to the device's camera.
@@ -25,18 +38,29 @@ mac:
     - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
     - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
   notarize: false
+
 dmg:
   artifactName: ${name}-${version}.${ext}
-linux:
+
+# Windows: override extraResources for win binaries
+win:
   target:
-    - AppImage
-    - snap
-    - deb
-  maintainer: electronjs.org
-  category: Utility
-appImage:
-  artifactName: ${name}-${version}.${ext}
+    - target: nsis
+      arch:
+        - x64
+  extraResources:
+    - from: resources/ffmpeg/win
+      to: ffmpeg
+      filter:
+        - ffmpeg.exe
+        - ffprobe.exe
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  artifactName: ${name}-${version}-setup.${ext}
+  shortcutName: ${productName}
+  uninstallDisplayName: ${productName}
+  createDesktopShortcut: always
+
 npmRebuild: false
-publish:
-  provider: generic
-  url: https://example.com/auto-updates
