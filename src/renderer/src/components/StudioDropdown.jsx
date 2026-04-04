@@ -1,5 +1,7 @@
 export function StudioDropdown({ studios, value, onChange }) {
-  const selectedIndex = value ? studios.indexOf(value) : -1
+  const selectedIndex = value
+    ? studios.findIndex((s) => s.uncPath === value.uncPath)
+    : -1
 
   return (
     <select
@@ -12,7 +14,7 @@ export function StudioDropdown({ studios, value, onChange }) {
     >
       <option value="" disabled>Select studio...</option>
       {studios.map((s, i) => (
-        <option key={s.name} value={String(i)}>{s.name}</option>
+        <option key={s.uncPath} value={String(i)}>{s.name}</option>
       ))}
     </select>
   )

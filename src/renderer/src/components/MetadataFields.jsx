@@ -2,11 +2,11 @@ export function MetadataFields({ title, jobId, onChange }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       <div>
-        <label htmlFor="title" style={{ display: 'block', fontSize: 11, marginBottom: 4, color: '#888' }}>
+        <label htmlFor="metadata-title" style={{ display: 'block', fontSize: 11, marginBottom: 4, color: '#888' }}>
           Document Title
         </label>
         <input
-          id="title"
+          id="metadata-title"
           type="text"
           value={title}
           onChange={(e) => onChange({ title: e.target.value, jobId })}
@@ -15,11 +15,11 @@ export function MetadataFields({ title, jobId, onChange }) {
         />
       </div>
       <div>
-        <label htmlFor="jobId" style={{ display: 'block', fontSize: 11, marginBottom: 4, color: '#888' }}>
+        <label htmlFor="metadata-jobId" style={{ display: 'block', fontSize: 11, marginBottom: 4, color: '#888' }}>
           Job ID <span style={{ color: '#e94560' }}>*</span>
         </label>
         <input
-          id="jobId"
+          id="metadata-jobId"
           type="text"
           value={jobId}
           onChange={(e) => onChange({ title, jobId: e.target.value })}
