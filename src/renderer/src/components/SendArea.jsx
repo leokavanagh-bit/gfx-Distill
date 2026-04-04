@@ -1,11 +1,11 @@
 import { useSend } from '../hooks/useSend.js'
 
 function isReady(params) {
-  return !!(params.mxfPath && params.studio && params.jobId)
+  return !!(params.mxfPath && params.studio && params.jobId && params.pngWatchFolder)
 }
 
 export function SendArea({ params }) {
-  const { status, progressMessage, error, execute } = useSend()
+  const { status, progressMessage, error, execute, reset } = useSend()
 
   if (status === 'sending') {
     return (
@@ -31,7 +31,17 @@ export function SendArea({ params }) {
   }
 
   if (status === 'complete') {
-    return <p style={{ color: '#4caf50', fontWeight: 'bold' }}>Sent successfully!</p>
+    return (
+      <div>
+        <p style={{ color: '#4caf50', fontWeight: 'bold', marginBottom: 8 }}>Sent successfully!</p>
+        <button
+          onClick={reset}
+          style={{ width: '100%', padding: '10px', background: '#444', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 14 }}
+        >
+          Send Another
+        </button>
+      </div>
+    )
   }
 
   return (

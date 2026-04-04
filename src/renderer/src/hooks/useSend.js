@@ -33,5 +33,11 @@ export function useSend() {
     }
   }
 
-  return { status, progressMessage, error, execute }
+  function reset() {
+    setStatus('idle')
+    setError(null)
+    setProgressMessage('')
+  }
+
+  return { status, progressMessage, error, execute, reset }
 }
