@@ -68,11 +68,15 @@ export function AdminScreen() {
         <select
           data-testid="studio-select"
           value={selectedIndex === -1 ? '' : selectedIndex}
-          onChange={(e) => selectStudio(parseInt(e.target.value, 10))}
+          onChange={(e) => {
+            const idx = parseInt(e.target.value, 10)
+            if (!Number.isFinite(idx)) return
+            selectStudio(idx)
+          }}
           style={{ ...inputStyle, marginTop: 4 }}
         >
           <option value="" disabled>Select a studio to edit...</option>
-          {config.studios.map((s, i) => <option key={s.uncPath} value={i}>{s.name}</option>)}
+          {config.studios.map((s, i) => <option key={i} value={i}>{s.name}</option>)}
         </select>
       </div>
 

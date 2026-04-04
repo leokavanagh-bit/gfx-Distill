@@ -65,4 +65,14 @@ describe('AdminScreen', () => {
     fireEvent.click(screen.getByRole('button', { name: /load from file/i }))
     await waitFor(() => expect(window.api.config.importConfig).toHaveBeenCalled())
   })
+
+  it('calls dialog.openFolder and saves config when Browse is clicked', async () => {
+    render(<AdminScreen />)
+    await waitFor(() => screen.getByText('London'))
+    fireEvent.click(screen.getByRole('button', { name: /browse/i }))
+    await waitFor(() => expect(window.api.dialog.openFolder).toHaveBeenCalled())
+    await waitFor(() => expect(window.api.config.save).toHaveBeenCalledWith(
+      expect.objectContaining({ pngWatchFolder: '/new/folder' })
+    ))
+  })
 })
