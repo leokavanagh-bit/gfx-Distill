@@ -1,8 +1,29 @@
-import { app, shell, BrowserWindow } from 'electron'
+import { app, shell, BrowserWindow, Menu } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { registerIpcHandlers } from './ipc-handlers.js'
+
+function createAppMenu(mainWindow) {
+  const isMac = process.platform === 'darwin'
+  const template = [
+    // macOS app menu (required to show the menu bar on mac)
+    ...(isMac ? [{ role: 'appMenu' }] : []),
+    {
+      label: 'File',
+      submenu: [
+        {
+          label: 'Admin Settings',
+          accelerator: isMac ? 'Cmd+,' : 'Ctrl+,',
+          click: () => mainWindow.webContents.send('nav:admin')
+        },
+        { type: 'separator' },
+        { role: isMac ? 'close' : 'quit' }
+      ]
+    }
+  ]
+  Menu.setApplicationMenu(Menu.buildFromTemplate(template))
+}
 
 function createWindow() {
   // Create the browser window.
@@ -54,6 +75,7 @@ app.whenReady().then(() => {
 
   const win = createWindow()
   registerIpcHandlers(win)
+  createAppMenu(win)
 
   app.on('activate', function () {
     // On macOS it's common to re-create a window in the app when the
