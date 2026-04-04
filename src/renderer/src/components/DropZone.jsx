@@ -18,6 +18,7 @@ export function DropZone({ file, onFile }) {
       return
     }
     setError(null)
+    // dropped.path is an Electron-specific extension to the File API — not available in browsers
     onFile(dropped.path)
   }
 
