@@ -26,7 +26,7 @@ vi.mock('nspell', () => ({
   default: mockNspell,
 }))
 
-import { shouldSkip } from '../../src/main/vetter.js'
+import { shouldSkip, scanVideo } from '../../src/main/vetter.js'
 
 describe('shouldSkip', () => {
   it('skips ALL-CAPS words', () => {
@@ -57,5 +57,82 @@ describe('shouldSkip', () => {
     expect(shouldSkip('hello')).toBe(false)
     expect(shouldSkip('Recieve')).toBe(false)
     expect(shouldSkip('Today')).toBe(false)
+  })
+})
+
+beforeEach(() => {
+  vi.clearAllMocks()
+  mockGetDuration.mockResolvedValue(3)
+  mockExtractFrame.mockResolvedValue('data:image/png;base64,abc')
+  mockRecognize.mockResolvedValue({ data: { text: '' } })
+  mockTerminate.mockResolvedValue()
+  mockCreateWorker.mockResolvedValue({ recognize: mockRecognize, terminate: mockTerminate })
+  mockNspell.mockReturnValue({ correct: mockCorrect })
+  mockCorrect.mockReturnValue(true)
+})
+
+describe('scanVideo', () => {
+  it('returns clean when all words pass spell check', async () => {
+    mockRecognize.mockResolvedValue({ data: { text: 'hello world' } })
+    mockCorrect.mockReturnValue(true)
+    const result = await scanVideo('/test.mxf')
+    expect(result).toEqual({ status: 'clean', flags: [] })
+  })
+
+  it('returns warnings with flagged words when misspellings found', async () => {
+    mockGetDuration.mockResolvedValue(2)
+    mockRecognize.mockResolvedValue({ data: { text: 'recieve' } })
+    mockCorrect.mockImplementation((word) => word !== 'recieve')
+    const result = await scanVideo('/test.mxf')
+    expect(result.status).toBe('warnings')
+    expect(result.flags).toContainEqual({ word: 'recieve', timecode: 0 })
+    expect(result.flags).toContainEqual({ word: 'recieve', timecode: 1 })
+  })
+
+  it('deduplicates the same word at the same timecode', async () => {
+    mockGetDuration.mockResolvedValue(1)
+    mockRecognize.mockResolvedValue({ data: { text: 'recieve recieve' } })
+    mockCorrect.mockReturnValue(false)
+    const result = await scanVideo('/test.mxf')
+    expect(result.flags.filter((f) => f.timecode === 0)).toHaveLength(1)
+  })
+
+  it('keeps the same word at different timecodes as separate flags', async () => {
+    mockGetDuration.mockResolvedValue(2)
+    mockRecognize.mockResolvedValue({ data: { text: 'recieve' } })
+    mockCorrect.mockReturnValue(false)
+    const result = await scanVideo('/test.mxf')
+    expect(result.flags).toHaveLength(2)
+    expect(result.flags[0].timecode).toBe(0)
+    expect(result.flags[1].timecode).toBe(1)
+  })
+
+  it('caps frame extraction at 30 frames regardless of video duration', async () => {
+    mockGetDuration.mockResolvedValue(60)
+    await scanVideo('/test.mxf')
+    expect(mockExtractFrame).toHaveBeenCalledTimes(30)
+  })
+
+  it('skips words matching shouldSkip rules (ALL-CAPS, short, digits, punctuation)', async () => {
+    mockGetDuration.mockResolvedValue(1)
+    mockRecognize.mockResolvedValue({ data: { text: 'BBC HD S01E03 @handle' } })
+    mockCorrect.mockReturnValue(false) // would flag if checked
+    const result = await scanVideo('/test.mxf')
+    expect(result.status).toBe('clean')
+    expect(result.flags).toHaveLength(0)
+  })
+
+  it('returns error status when getDuration throws', async () => {
+    mockGetDuration.mockRejectedValue(new Error('probe failed'))
+    const result = await scanVideo('/test.mxf')
+    expect(result.status).toBe('error')
+    expect(result.error).toBe('probe failed')
+    expect(result.flags).toEqual([])
+  })
+
+  it('returns error status when a frame extraction throws', async () => {
+    mockExtractFrame.mockRejectedValue(new Error('ffmpeg error'))
+    const result = await scanVideo('/test.mxf')
+    expect(result.status).toBe('error')
   })
 })
