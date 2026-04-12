@@ -61,7 +61,7 @@ export function VettingBanner({ status, flags, onTimecodeSelect, onDismiss }) {
       <span
         style={{ color: '#e94560', fontSize: 13, fontWeight: 'bold', whiteSpace: 'nowrap', flexShrink: 0 }}
       >
-        {`⚠ ${flags.length} possible typo${flags.length === 1 ? '.' : 's'}`}
+        {`⚠ ${flags.length} possible typo${flags.length === 1 ? '' : 's'}`}
       </span>
       <div style={{ display: 'flex', gap: 12, flex: 1, flexWrap: 'wrap' }}>
         {flags.map(({ word, timecode }) => (
