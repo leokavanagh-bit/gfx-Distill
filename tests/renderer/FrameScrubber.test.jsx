@@ -64,4 +64,41 @@ describe('FrameScrubber', () => {
       expect(screen.getByRole('img')).toHaveAttribute('src', 'data:image/png;base64,abc')
     )
   })
+
+  describe('seekTo prop', () => {
+    it('jumps to the specified timecode when seekTo changes', async () => {
+      const onFrameChange = vi.fn()
+      const { rerender } = render(
+        <FrameScrubber mxfPath="/renders/MyShow.mxf" onFrameChange={onFrameChange} seekTo={null} />
+      )
+      await waitFor(() => screen.getByRole('slider'))
+      vi.clearAllMocks()
+
+      rerender(
+        <FrameScrubber mxfPath="/renders/MyShow.mxf" onFrameChange={onFrameChange} seekTo={5} />
+      )
+      await waitFor(() => expect(onFrameChange).toHaveBeenCalledWith(5))
+      expect(window.api.ffmpeg.extractFrame).toHaveBeenCalledWith('/renders/MyShow.mxf', 5)
+    })
+
+    it('sets the slider value to the seekTo timecode', async () => {
+      const { rerender } = render(
+        <FrameScrubber mxfPath="/renders/MyShow.mxf" onFrameChange={vi.fn()} seekTo={null} />
+      )
+      await waitFor(() => screen.getByRole('slider'))
+      rerender(
+        <FrameScrubber mxfPath="/renders/MyShow.mxf" onFrameChange={vi.fn()} seekTo={10} />
+      )
+      await waitFor(() => expect(screen.getByRole('slider')).toHaveValue('10'))
+    })
+
+    it('does nothing when seekTo is null', async () => {
+      render(
+        <FrameScrubber mxfPath="/renders/MyShow.mxf" onFrameChange={vi.fn()} seekTo={null} />
+      )
+      await waitFor(() => screen.getByRole('slider'))
+      vi.clearAllMocks()
+      expect(window.api.ffmpeg.extractFrame).not.toHaveBeenCalled()
+    })
+  })
 })

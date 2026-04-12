@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 
-export function FrameScrubber({ mxfPath, onFrameChange }) {
+export function FrameScrubber({ mxfPath, onFrameChange, seekTo }) {
   const [duration, setDuration] = useState(0)
   const [seconds, setSeconds] = useState(0)
   const [frameUrl, setFrameUrl] = useState(null)
@@ -24,6 +24,13 @@ export function FrameScrubber({ mxfPath, onFrameChange }) {
 
     return () => { cancelled = true }
   }, [mxfPath])
+
+  useEffect(() => {
+    if (seekTo == null || !mxfPath) return
+    setSeconds(seekTo)
+    onFrameChange(seekTo)
+    extractAt(seekTo, mxfPath)
+  }, [seekTo])
 
   async function extractAt(secs, path) {
     const seq = ++seqRef.current
@@ -51,7 +58,7 @@ export function FrameScrubber({ mxfPath, onFrameChange }) {
     return (
       <div
         data-testid="frame-placeholder"
-        style={{ background: '#000', height: 200, borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#555' }}
+        style={{ background: '#000', aspectRatio: '16 / 9', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#555' }}
       >
         Load an MXF file to preview frames
       </div>
@@ -60,9 +67,9 @@ export function FrameScrubber({ mxfPath, onFrameChange }) {
 
   return (
     <div>
-      <div style={{ background: '#000', borderRadius: 4, minHeight: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ background: '#000', borderRadius: 4, aspectRatio: '16 / 9', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
         {loading && <span style={{ color: '#888' }}>Extracting...</span>}
-        {frameUrl && !loading && <img src={frameUrl} alt="Frame preview" style={{ maxWidth: '100%', maxHeight: 300 }} />}
+        {frameUrl && !loading && <img src={frameUrl} alt="Frame preview" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />}
       </div>
       <input
         type="range"
