@@ -1,7 +1,5 @@
 import { createWorker } from 'tesseract.js'
 import nspell from 'nspell'
-import dictionaryEn from 'dictionary-en'
-import { promisify } from 'util'
 import path from 'path'
 import { app } from 'electron'
 import { getDuration, extractFrame } from './ffmpeg.js'
@@ -27,8 +25,10 @@ export async function scanVideo(filePath) {
     const duration = await getDuration(filePath)
     const frameCount = Math.min(Math.ceil(duration), 30)
 
-    const loadDict = promisify(dictionaryEn)
-    const dict = await loadDict()
+    const { default: dictionaryFn } = await import('dictionary-en')
+    const dict = await new Promise((resolve, reject) =>
+      dictionaryFn((err, d) => (err ? reject(err) : resolve(d)))
+    )
     const spell = nspell(dict)
 
     const cacheDir = path.join(app.getPath('userData'), 'tessdata')
