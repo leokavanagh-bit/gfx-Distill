@@ -27,12 +27,14 @@ export function MainScreen() {
       setVettingDismissed(false)
       return
     }
+    let stale = false
     setVettingResult('scanning')
     setVettingDismissed(false)
     setSeekTo(null)
-    window.api.vet.scan(mxfPath).then(setVettingResult).catch(() => {
-      setVettingResult({ status: 'error', flags: [], error: 'scan failed' })
-    })
+    window.api.vet.scan(mxfPath)
+      .then((result) => { if (!stale) setVettingResult(result) })
+      .catch(() => { if (!stale) setVettingResult({ status: 'error', flags: [], error: 'scan failed' }) })
+    return () => { stale = true }
   }, [mxfPath])
 
   if (loading) return <div style={{ padding: 24, color: '#888' }}>Loading config...</div>

@@ -11,7 +11,7 @@ const { mockGetDuration, mockExtractFrame, mockCreateWorker, mockRecognize, mock
   mockNspell: vi.fn(),
 }))
 
-vi.mock('electron', () => ({ app: { isPackaged: false } }))
+vi.mock('electron', () => ({ app: { isPackaged: false, getPath: () => '/tmp/test-userdata' } }))
 vi.mock('../../src/main/ffmpeg.js', () => ({
   getDuration: mockGetDuration,
   extractFrame: mockExtractFrame,

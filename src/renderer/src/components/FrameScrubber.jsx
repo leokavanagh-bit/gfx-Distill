@@ -30,7 +30,7 @@ export function FrameScrubber({ mxfPath, onFrameChange, seekTo }) {
     setSeconds(seekTo)
     onFrameChange(seekTo)
     extractAt(seekTo, mxfPath)
-  }, [seekTo])
+  }, [seekTo, mxfPath, onFrameChange])
 
   async function extractAt(secs, path) {
     const seq = ++seqRef.current

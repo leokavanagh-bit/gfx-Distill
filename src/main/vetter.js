@@ -2,6 +2,8 @@ import { createWorker } from 'tesseract.js'
 import nspell from 'nspell'
 import dictionaryEn from 'dictionary-en'
 import { promisify } from 'util'
+import path from 'path'
+import { app } from 'electron'
 import { getDuration, extractFrame } from './ffmpeg.js'
 
 export function shouldSkip(word) {
@@ -29,7 +31,8 @@ export async function scanVideo(filePath) {
     const dict = await loadDict()
     const spell = nspell(dict)
 
-    worker = await createWorker('eng')
+    const cacheDir = path.join(app.getPath('userData'), 'tessdata')
+    worker = await createWorker('eng', 1, { cachePath: cacheDir })
     const seen = new Set()
     const flags = []
 
