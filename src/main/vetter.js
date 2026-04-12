@@ -20,6 +20,7 @@ function extractWords(text) {
 }
 
 export async function scanVideo(filePath) {
+  let worker
   try {
     const duration = await getDuration(filePath)
     const frameCount = Math.min(Math.ceil(duration), 30)
@@ -28,7 +29,7 @@ export async function scanVideo(filePath) {
     const dict = await loadDict()
     const spell = nspell(dict)
 
-    const worker = await createWorker('eng')
+    worker = await createWorker('eng')
     const seen = new Set()
     const flags = []
 
@@ -56,6 +57,7 @@ export async function scanVideo(filePath) {
       ? { status: 'warnings', flags }
       : { status: 'clean', flags: [] }
   } catch (err) {
+    if (worker) await worker.terminate()
     return { status: 'error', flags: [], error: err.message }
   }
 }

@@ -135,6 +135,12 @@ describe('scanVideo', () => {
     expect(result.status).toBe('error')
   })
 
+  it('terminates worker even when frame extraction throws', async () => {
+    mockExtractFrame.mockRejectedValue(new Error('ffmpeg error'))
+    await scanVideo('/test.mxf')
+    expect(mockTerminate).toHaveBeenCalled()
+  })
+
   it('strips leading/trailing punctuation before spell-checking (e.g. "recieve.")', async () => {
     mockGetDuration.mockResolvedValue(1)
     mockRecognize.mockResolvedValue({ data: { text: 'recieve.' } })
