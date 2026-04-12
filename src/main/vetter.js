@@ -13,7 +13,10 @@ export function shouldSkip(word) {
 }
 
 function extractWords(text) {
-  return text.split(/\s+/).filter(Boolean)
+  return text
+    .split(/\s+/)
+    .map((t) => t.replace(/^[^a-zA-Z\d]+|[^a-zA-Z\d]+$/g, ''))
+    .filter(Boolean)
 }
 
 export async function scanVideo(filePath) {

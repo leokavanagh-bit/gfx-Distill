@@ -60,18 +60,17 @@ describe('shouldSkip', () => {
   })
 })
 
-beforeEach(() => {
-  vi.clearAllMocks()
-  mockGetDuration.mockResolvedValue(3)
-  mockExtractFrame.mockResolvedValue('data:image/png;base64,abc')
-  mockRecognize.mockResolvedValue({ data: { text: '' } })
-  mockTerminate.mockResolvedValue()
-  mockCreateWorker.mockResolvedValue({ recognize: mockRecognize, terminate: mockTerminate })
-  mockNspell.mockReturnValue({ correct: mockCorrect })
-  mockCorrect.mockReturnValue(true)
-})
-
 describe('scanVideo', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockGetDuration.mockResolvedValue(3)
+    mockExtractFrame.mockResolvedValue('data:image/png;base64,abc')
+    mockRecognize.mockResolvedValue({ data: { text: '' } })
+    mockTerminate.mockResolvedValue()
+    mockCreateWorker.mockResolvedValue({ recognize: mockRecognize, terminate: mockTerminate })
+    mockNspell.mockReturnValue({ correct: mockCorrect })
+    mockCorrect.mockReturnValue(true)
+  })
   it('returns clean when all words pass spell check', async () => {
     mockRecognize.mockResolvedValue({ data: { text: 'hello world' } })
     mockCorrect.mockReturnValue(true)
@@ -115,7 +114,7 @@ describe('scanVideo', () => {
 
   it('skips words matching shouldSkip rules (ALL-CAPS, short, digits, punctuation)', async () => {
     mockGetDuration.mockResolvedValue(1)
-    mockRecognize.mockResolvedValue({ data: { text: 'BBC HD S01E03 @handle' } })
+    mockRecognize.mockResolvedValue({ data: { text: 'BBC HD S01E03 http://example.com' } })
     mockCorrect.mockReturnValue(false) // would flag if checked
     const result = await scanVideo('/test.mxf')
     expect(result.status).toBe('clean')
@@ -134,5 +133,14 @@ describe('scanVideo', () => {
     mockExtractFrame.mockRejectedValue(new Error('ffmpeg error'))
     const result = await scanVideo('/test.mxf')
     expect(result.status).toBe('error')
+  })
+
+  it('strips leading/trailing punctuation before spell-checking (e.g. "recieve.")', async () => {
+    mockGetDuration.mockResolvedValue(1)
+    mockRecognize.mockResolvedValue({ data: { text: 'recieve.' } })
+    mockCorrect.mockImplementation((word) => word !== 'recieve')
+    const result = await scanVideo('/test.mxf')
+    expect(result.status).toBe('warnings')
+    expect(result.flags).toContainEqual({ word: 'recieve', timecode: 0 })
   })
 })
