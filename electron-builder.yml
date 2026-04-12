@@ -15,14 +15,17 @@ files:
 
 asarUnpack:
   - resources/**
+  - node_modules/exiftool-vendored.pl/**
+  - node_modules/exiftool-vendored/**
+  - node_modules/tesseract.js/**
+  - node_modules/tesseract.js-core/**
 
-# macOS: bundle mac ffmpeg binaries
+# macOS: bundle mac ffmpeg binaries from npm packages
 extraResources:
-  - from: resources/ffmpeg/mac
-    to: ffmpeg
-    filter:
-      - ffmpeg
-      - ffprobe
+  - from: node_modules/ffmpeg-static/ffmpeg
+    to: ffmpeg/ffmpeg
+  - from: node_modules/ffprobe-static/bin/darwin/arm64/ffprobe
+    to: ffmpeg/ffprobe
 
 mac:
   target:
@@ -49,11 +52,10 @@ win:
       arch:
         - x64
   extraResources:
-    - from: resources/ffmpeg/win
-      to: ffmpeg
-      filter:
-        - ffmpeg.exe
-        - ffprobe.exe
+    - from: resources/ffmpeg/win/ffmpeg.exe
+      to: ffmpeg/ffmpeg.exe
+    - from: node_modules/ffprobe-static/bin/win32/x64/ffprobe.exe
+      to: ffmpeg/ffprobe.exe
 
 nsis:
   oneClick: false

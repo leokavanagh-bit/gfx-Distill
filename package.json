@@ -11,8 +11,9 @@
     "dev": "electron-vite dev",
     "build": "electron-vite build",
     "postinstall": "electron-builder install-app-deps",
-    "build:unpack": "electron-vite build && electron-builder --dir",
+    "build:unpack": "electron-vite build && electron-builder --dir --arm64 && codesign --deep --force --sign - 'dist-electron/mac-arm64/GFX Distributor.app'",
     "build:win": "electron-vite build && electron-builder --win",
+    "build:win-unpack": "electron-vite build && electron-builder --win --dir --x64",
     "build:mac": "electron-vite build && electron-builder --mac",
     "build:linux": "electron-vite build && electron-builder --linux",
     "test:main": "vitest run --config vitest.config.main.js --passWithNoTests",
@@ -22,10 +23,13 @@
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
+    "dictionary-en": "^4.0.0",
     "exiftool-vendored": "^35.15.1",
     "ffmpeg-static": "^5.3.0",
     "ffprobe-static": "^3.1.0",
-    "fluent-ffmpeg": "^2.1.3"
+    "fluent-ffmpeg": "^2.1.3",
+    "nspell": "^2.1.5",
+    "tesseract.js": "^7.0.0"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config": "^2.1.0",
