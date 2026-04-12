@@ -54,7 +54,7 @@ describe('VettingBanner', () => {
         onDismiss={vi.fn()}
       />
     )
-    expect(screen.getByText(/1 possible typo[^s]/i)).toBeInTheDocument()
+    expect(screen.getByText(/1 possible typo$/i)).toBeInTheDocument()
   })
 
   it('calls onTimecodeSelect with timecode when a word chip is clicked', () => {
