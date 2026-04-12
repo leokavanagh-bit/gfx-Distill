@@ -2,6 +2,11 @@ import { ipcMain, dialog } from 'electron'
 import { loadConfig, saveConfig, exportConfig, importConfig } from './config-manager.js'
 import { getDuration, extractFrame } from './ffmpeg.js'
 import { executeSend } from './send-orchestrator.js'
+import { scanVideo } from './vetter.js'
+
+function getWindow(win) {
+  return win && !win.isDestroyed() ? win : null
+}
 
 export function registerIpcHandlers(mainWindow) {
   ipcMain.handle('config:load', () => loadConfig())
@@ -9,7 +14,7 @@ export function registerIpcHandlers(mainWindow) {
   ipcMain.handle('config:save', (_, config) => saveConfig(config))
 
   ipcMain.handle('config:export', async () => {
-    const { filePath } = await dialog.showSaveDialog(mainWindow, {
+    const { filePath } = await dialog.showSaveDialog(getWindow(mainWindow), {
       title: 'Export Config',
       defaultPath: 'config.json',
       filters: [{ name: 'JSON', extensions: ['json'] }],
@@ -21,7 +26,7 @@ export function registerIpcHandlers(mainWindow) {
   })
 
   ipcMain.handle('config:import', async () => {
-    const { filePaths } = await dialog.showOpenDialog(mainWindow, {
+    const { filePaths } = await dialog.showOpenDialog(getWindow(mainWindow), {
       title: 'Import Config',
       filters: [{ name: 'JSON', extensions: ['json'] }],
       properties: ['openFile'],
@@ -35,14 +40,14 @@ export function registerIpcHandlers(mainWindow) {
   ipcMain.handle('ffmpeg:extract-frame', (_, filePath, seconds) => extractFrame(filePath, seconds))
 
   ipcMain.handle('dialog:open-folder', async () => {
-    const { filePaths } = await dialog.showOpenDialog(mainWindow, {
+    const { filePaths } = await dialog.showOpenDialog(getWindow(mainWindow), {
       properties: ['openDirectory'],
     })
     return filePaths[0] ?? null
   })
 
   ipcMain.handle('dialog:open-file', async (_, filters) => {
-    const { filePaths } = await dialog.showOpenDialog(mainWindow, {
+    const { filePaths } = await dialog.showOpenDialog(getWindow(mainWindow), {
       filters,
       properties: ['openFile'],
     })
@@ -50,13 +55,17 @@ export function registerIpcHandlers(mainWindow) {
   })
 
   ipcMain.handle('dialog:save-file', async (_, filters) => {
-    const { filePath } = await dialog.showSaveDialog(mainWindow, { filters })
+    const { filePath } = await dialog.showSaveDialog(getWindow(mainWindow), { filters })
     return filePath ?? null
   })
 
   ipcMain.handle('send:execute', async (event, params) => {
     await executeSend(params, (progress) => {
-      event.sender.send('send:progress', progress)
+      if (!event.sender.isDestroyed()) {
+        event.sender.send('send:progress', progress)
+      }
     })
   })
+
+  ipcMain.handle('vet:scan', (_, filePath) => scanVideo(filePath))
 }

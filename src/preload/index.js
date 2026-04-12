@@ -1,6 +1,7 @@
-import { contextBridge, ipcRenderer } from 'electron'
+import { contextBridge, ipcRenderer, webUtils } from 'electron'
 
 contextBridge.exposeInMainWorld('api', {
+  getFilePath: (file) => webUtils.getPathForFile(file),
   config: {
     load: () => ipcRenderer.invoke('config:load'),
     save: (config) => ipcRenderer.invoke('config:save', config),
@@ -31,5 +32,8 @@ contextBridge.exposeInMainWorld('api', {
       ipcRenderer.removeAllListeners('nav:admin')
       ipcRenderer.removeAllListeners('nav:main')
     }
-  }
+  },
+  vet: {
+    scan: (filePath) => ipcRenderer.invoke('vet:scan', filePath),
+  },
 })
