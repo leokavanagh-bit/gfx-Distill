@@ -40,7 +40,7 @@ describe('AdminScreen', () => {
     await waitFor(() => screen.getByText('London'))
     fireEvent.change(screen.getByTestId('studio-select'), { target: { value: '0' } })
     expect(screen.getByLabelText(/studio name/i)).toHaveValue('London')
-    expect(screen.getByLabelText(/unc path/i)).toHaveValue('\\\\lon-gv01\\watch\\')
+    expect(screen.getByLabelText(/^path$/i)).toHaveValue('\\\\lon-gv01\\watch\\')
   })
 
   it('calls config.save when Save Studio is clicked', async () => {

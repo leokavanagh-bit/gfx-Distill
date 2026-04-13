@@ -6,4 +6,5 @@ window.api = {
   ffmpeg: {},
   send: {},
   dialog: {},
+  getFilePath: (file) => file.path,
 }

@@ -3,11 +3,12 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { VettingBanner } from '../../src/renderer/src/components/VettingBanner.jsx'
 
 describe('VettingBanner', () => {
-  it('renders nothing when status is null', () => {
+  it('renders an empty placeholder bar when status is null', () => {
     const { container } = render(
       <VettingBanner status={null} flags={[]} onTimecodeSelect={vi.fn()} onDismiss={vi.fn()} />
     )
-    expect(container).toBeEmptyDOMElement()
+    expect(container.firstChild).toBeInTheDocument()
+    expect(container).not.toHaveTextContent()
   })
 
   it('shows spinner and scanning text when status is scanning', () => {
