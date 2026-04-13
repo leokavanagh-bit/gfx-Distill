@@ -20,7 +20,7 @@ vi.mock('tesseract.js', () => ({
   createWorker: mockCreateWorker,
 }))
 vi.mock('dictionary-en', () => ({
-  default: (cb) => cb(null, { aff: Buffer.from(''), dic: Buffer.from('') }),
+  default: { aff: Buffer.from(''), dic: Buffer.from('') },
 }))
 vi.mock('nspell', () => ({
   default: mockNspell,

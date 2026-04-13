@@ -25,10 +25,7 @@ export async function scanVideo(filePath) {
     const duration = await getDuration(filePath)
     const frameCount = Math.min(Math.ceil(duration), 30)
 
-    const { default: dictionaryFn } = await import('dictionary-en')
-    const dict = await new Promise((resolve, reject) =>
-      dictionaryFn((err, d) => (err ? reject(err) : resolve(d)))
-    )
+    const { default: dict } = await import('dictionary-en')
     const spell = nspell(dict)
 
     const cacheDir = path.join(app.getPath('userData'), 'tessdata')
@@ -60,6 +57,7 @@ export async function scanVideo(filePath) {
       ? { status: 'warnings', flags }
       : { status: 'clean', flags: [] }
   } catch (err) {
+    console.error('[vetter] scan failed:', err)
     if (worker) await worker.terminate()
     return { status: 'error', flags: [], error: err.message }
   }
