@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import distillLogo from '../Distill_Logo.svg'
 import { DropZone } from './DropZone.jsx'
 import { StudioDropdown } from './StudioDropdown.jsx'
 import { MetadataFields } from './MetadataFields.jsx'
@@ -64,8 +65,14 @@ export function MainScreen() {
         height: '100vh',
         boxSizing: 'border-box',
         overflow: 'hidden',
+        background: '#231f20',
       }}
     >
+      {/* Header */}
+      <div style={{ padding: '10px 20px 0' }}>
+        <img src={distillLogo} alt="Distill" style={{ height: 28 }} />
+      </div>
+
       {/* Two-column content area */}
       <div style={{ display: 'flex', gap: 20, padding: 20, flex: 1, overflow: 'hidden' }}>
         {/* Left column */}
@@ -90,21 +97,21 @@ export function MainScreen() {
         </div>
 
         {/* Right column */}
-        <div style={{ flex: 1.4, display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={{ flex: 1.4, display: 'flex', flexDirection: 'column' }}>
           <FrameScrubber mxfPath={mxfPath} onFrameChange={setScrubSeconds} seekTo={seekTo} />
-          <SendArea params={sendParams} />
+          <div style={{ marginTop: 'auto', paddingTop: 16 }}>
+            <SendArea params={sendParams} />
+          </div>
         </div>
       </div>
 
-      {/* Vetting banner — full width, below both columns */}
-      {!vettingDismissed && bannerStatus && (
-        <VettingBanner
-          status={bannerStatus}
-          flags={bannerFlags}
-          onTimecodeSelect={(t) => setSeekTo(t)}
-          onDismiss={() => setVettingDismissed(true)}
-        />
-      )}
+      {/* Vetting banner — full width, below both columns, always rendered to hold space */}
+      <VettingBanner
+        status={vettingDismissed ? null : bannerStatus}
+        flags={bannerFlags}
+        onTimecodeSelect={(t) => setSeekTo(t)}
+        onDismiss={() => setVettingDismissed(true)}
+      />
     </div>
   )
 }

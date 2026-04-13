@@ -19,6 +19,10 @@ function extractWords(text) {
     .filter(Boolean)
 }
 
+// A misspelled word must appear in at least this many frames before being flagged.
+// This prevents partially-revealed animated text from being reported as a typo.
+const FRAME_THRESHOLD = 2
+
 export async function scanVideo(filePath) {
   let worker
   try {
@@ -30,8 +34,9 @@ export async function scanVideo(filePath) {
 
     const cacheDir = path.join(app.getPath('userData'), 'tessdata')
     worker = await createWorker('eng', 1, { cachePath: cacheDir })
-    const seen = new Set()
-    const flags = []
+
+    // Track misspelled candidates: word → { firstTimecode, frameCount }
+    const candidates = new Map()
 
     for (let i = 0; i < frameCount; i++) {
       const timecode = i
@@ -40,17 +45,30 @@ export async function scanVideo(filePath) {
         data: { text },
       } = await worker.recognize(imageData)
 
+      // Use a per-frame set so the same word twice in one frame only counts once
+      const frameWords = new Set()
       for (const word of extractWords(text)) {
         if (shouldSkip(word)) continue
-        if (seen.has(word)) continue
-        seen.add(word)
-        if (!spell.correct(word)) {
-          flags.push({ word, timecode })
+        if (spell.correct(word)) continue
+        if (frameWords.has(word)) continue
+        frameWords.add(word)
+
+        if (candidates.has(word)) {
+          candidates.get(word).frameCount++
+        } else {
+          candidates.set(word, { firstTimecode: timecode, frameCount: 1 })
         }
       }
     }
 
     await worker.terminate()
+
+    const flags = []
+    for (const [word, { firstTimecode, frameCount }] of candidates) {
+      if (frameCount >= FRAME_THRESHOLD) {
+        flags.push({ word, timecode: firstTimecode })
+      }
+    }
 
     return flags.length > 0
       ? { status: 'warnings', flags }

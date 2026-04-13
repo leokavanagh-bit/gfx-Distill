@@ -6,7 +6,7 @@ import { writeXmpMetadata } from './exiftool.js'
 import { copyFile } from './file-transfer.js'
 
 export async function executeSend(params, onProgress) {
-  const { mxfPath, scrubSeconds, studio, pngWatchFolder, title, jobId } = params
+  const { mxfPath, scrubSeconds, studio, pngWatchFolder, title, jobId, keywords } = params
   const baseName = path.basename(mxfPath, path.extname(mxfPath))
   const tmpPng = path.join(os.tmpdir(), `${baseName}_${Date.now()}.png`)
   let currentStep = null
@@ -23,7 +23,7 @@ export async function executeSend(params, onProgress) {
     // Step 2: Write XMP metadata
     currentStep = 'writing-metadata'
     onProgress({ step: 'writing-metadata', message: 'Writing metadata...' })
-    await writeXmpMetadata(tmpPng, { title, description: jobId })
+    await writeXmpMetadata(tmpPng, { title, description: jobId, keywords })
 
     // Step 3: Copy MXF
     currentStep = 'copying-mxf'

@@ -5,16 +5,18 @@ function formatTimecode(seconds) {
 }
 
 export function VettingBanner({ status, flags, onTimecodeSelect, onDismiss }) {
-  if (!status) return null
-
   const base = {
     borderTop: '1px solid',
     padding: '10px 20px',
     display: 'flex',
     alignItems: 'center',
     gap: 12,
-    background: '#1a1a2e',
+    background: '#262626',
     flexShrink: 0,
+  }
+
+  if (!status) {
+    return <div style={{ ...base, borderTopColor: '#333', minHeight: 41 }} />
   }
 
   if (status === 'scanning') {

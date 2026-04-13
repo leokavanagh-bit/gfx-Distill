@@ -4,6 +4,9 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { registerIpcHandlers } from './ipc-handlers.js'
 
+// Keep a module-level reference so the window is never garbage collected
+let mainWindow = null
+
 function createAppMenu(mainWindow) {
   const isMac = process.platform === 'darwin'
   const template = [
@@ -27,9 +30,14 @@ function createAppMenu(mainWindow) {
 
 function createWindow() {
   // Create the browser window.
-  const mainWindow = new BrowserWindow({
-    width: 900,
-    height: 670,
+  mainWindow = new BrowserWindow({
+    width: 960,
+    height: 720,
+    minWidth: 960,
+    minHeight: 720,
+    maxWidth: 960,
+    maxHeight: 720,
+    resizable: false,
     show: false,
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
@@ -41,6 +49,10 @@ function createWindow() {
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
+  })
+
+  mainWindow.on('closed', () => {
+    mainWindow = null
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {

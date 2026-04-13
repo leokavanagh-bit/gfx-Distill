@@ -27,6 +27,35 @@ export function AdminScreen() {
     setConfig(updated)
   }
 
+  async function deleteStudio() {
+    const updated = {
+      ...config,
+      studios: config.studios.filter((_, i) => i !== selectedIndex),
+    }
+    await window.api.config.save(updated)
+    setConfig(updated)
+    setSelectedIndex(-1)
+    setStudioName('')
+    setUncPath('')
+  }
+
+  async function addStudio() {
+    const newStudio = { name: 'New Studio', uncPath: '' }
+    const updated = { ...config, studios: [...config.studios, newStudio] }
+    await window.api.config.save(updated)
+    setConfig(updated)
+    const newIndex = updated.studios.length - 1
+    setSelectedIndex(newIndex)
+    setStudioName(newStudio.name)
+    setUncPath(newStudio.uncPath)
+  }
+
+  async function browseStudioFolder() {
+    const folder = await window.api.dialog.openFolder()
+    if (!folder) return
+    setUncPath(folder)
+  }
+
   async function browsePngFolder() {
     const folder = await window.api.dialog.openFolder()
     if (!folder) return
@@ -52,8 +81,8 @@ export function AdminScreen() {
   })
 
   return (
-    <div style={{ padding: 24, maxWidth: 560 }}>
-      <h2 style={{ margin: '0 0 20px' }}>Admin Settings</h2>
+    <div style={{ padding: 24, maxWidth: 560, minHeight: '100vh', background: '#231f20', color: '#fff', boxSizing: 'border-box' }}>
+      <h2 style={{ margin: '0 0 20px', color: '#fff' }}>Admin Settings</h2>
 
       <div style={{ marginBottom: 20 }}>
         <label style={labelStyle}>PNG Watch Folder</label>
@@ -64,7 +93,10 @@ export function AdminScreen() {
       </div>
 
       <div style={{ marginBottom: 16 }}>
-        <label style={labelStyle}>Edit Studio</label>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+          <label style={labelStyle}>Studios</label>
+          <button onClick={addStudio} style={{ ...btnStyle(false), fontSize: 11, padding: '4px 10px' }}>+ Add Studio</button>
+        </div>
         <select
           data-testid="studio-select"
           value={selectedIndex === -1 ? '' : selectedIndex}
@@ -87,10 +119,16 @@ export function AdminScreen() {
             <input id="admin-studio-name" type="text" value={studioName} onChange={(e) => setStudioName(e.target.value)} style={inputStyle} />
           </div>
           <div>
-            <label htmlFor="admin-unc-path" style={labelStyle}>UNC Path</label>
-            <input id="admin-unc-path" type="text" value={uncPath} onChange={(e) => setUncPath(e.target.value)} style={inputStyle} />
+            <label htmlFor="admin-unc-path" style={labelStyle}>Path</label>
+            <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+              <input id="admin-unc-path" type="text" value={uncPath} onChange={(e) => setUncPath(e.target.value)} style={{ ...inputStyle, marginTop: 0, flex: 1 }} />
+              <button onClick={browseStudioFolder} style={btnStyle(false)}>Browse</button>
+            </div>
           </div>
-          <button onClick={saveStudio} style={btnStyle(true)}>Save Studio</button>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={saveStudio} style={{ ...btnStyle(true), flex: 1 }}>Save Studio</button>
+            <button onClick={deleteStudio} style={{ ...btnStyle(false), color: '#e94560', border: '1px solid #e94560' }}>Delete</button>
+          </div>
         </div>
       )}
 

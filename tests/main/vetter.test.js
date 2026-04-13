@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 // scanVideo mocks — declared here so vi.mock factories can reference them
 const { mockGetDuration, mockExtractFrame, mockCreateWorker, mockRecognize, mockTerminate, mockCorrect, mockNspell } = vi.hoisted(() => ({
@@ -88,7 +88,7 @@ describe('scanVideo', () => {
   })
 
   it('deduplicates the same word at the same timecode', async () => {
-    mockGetDuration.mockResolvedValue(1)
+    mockGetDuration.mockResolvedValue(2)
     mockRecognize.mockResolvedValue({ data: { text: 'recieve recieve' } })
     mockCorrect.mockReturnValue(false)
     const result = await scanVideo('/test.mxf')
@@ -140,11 +140,21 @@ describe('scanVideo', () => {
   })
 
   it('strips leading/trailing punctuation before spell-checking (e.g. "recieve.")', async () => {
-    mockGetDuration.mockResolvedValue(1)
+    mockGetDuration.mockResolvedValue(2)
     mockRecognize.mockResolvedValue({ data: { text: 'recieve.' } })
     mockCorrect.mockImplementation((word) => word !== 'recieve')
     const result = await scanVideo('/test.mxf')
     expect(result.status).toBe('warnings')
     expect(result.flags).toContainEqual({ word: 'recieve', timecode: 0 })
+  })
+
+  it('does not flag a misspelled word that appears in only one frame (animation mitigation)', async () => {
+    mockGetDuration.mockResolvedValue(3)
+    mockRecognize.mockResolvedValueOnce({ data: { text: 'recieve' } })
+    mockRecognize.mockResolvedValue({ data: { text: '' } })
+    mockCorrect.mockImplementation((word) => word !== 'recieve')
+    const result = await scanVideo('/test.mxf')
+    expect(result.status).toBe('clean')
+    expect(result.flags).toHaveLength(0)
   })
 })
