@@ -19,7 +19,7 @@ describe('writeXmpMetadata', () => {
 
     expect(mockWrite).toHaveBeenCalledWith(
       '/tmp/frame.png',
-      { 'XMP-dc:Title': 'My Show S01E01', 'XMP-dc:Description': '8C378D' },
+      { 'XMP-dc:Title': 'My Show S01E01', 'XMP-dc:Description': '8C378D', 'XMP-dc:Subject': [] },
       ['-overwrite_original']
     )
   })
@@ -41,7 +41,16 @@ describe('writeXmpMetadata', () => {
     await writeXmpMetadata('/tmp/frame.png', { title: '', description: '8C378D' })
     expect(mockWrite).toHaveBeenCalledWith(
       '/tmp/frame.png',
-      { 'XMP-dc:Title': '', 'XMP-dc:Description': '8C378D' },
+      { 'XMP-dc:Title': '', 'XMP-dc:Description': '8C378D', 'XMP-dc:Subject': [] },
+      ['-overwrite_original']
+    )
+  })
+
+  it('parses keywords into an array for XMP-dc:Subject', async () => {
+    await writeXmpMetadata('/tmp/frame.png', { title: 'T', description: 'D', keywords: 'sport, promo, live' })
+    expect(mockWrite).toHaveBeenCalledWith(
+      '/tmp/frame.png',
+      { 'XMP-dc:Title': 'T', 'XMP-dc:Description': 'D', 'XMP-dc:Subject': ['sport', 'promo', 'live'] },
       ['-overwrite_original']
     )
   })
