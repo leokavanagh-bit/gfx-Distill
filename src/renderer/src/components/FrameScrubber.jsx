@@ -71,15 +71,20 @@ export function FrameScrubber({ mxfPath, onFrameChange, seekTo }) {
         {loading && <span style={{ color: '#888' }}>Extracting...</span>}
         {frameUrl && !loading && <img src={frameUrl} alt="Frame preview" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />}
       </div>
-      <input
-        type="range"
-        min={0}
-        max={duration}
-        step={0.04}
-        value={seconds}
-        onChange={handleScrub}
-        style={{ width: '100%', marginTop: 8 }}
-      />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+        <input
+          type="range"
+          min={0}
+          max={duration}
+          step={0.04}
+          value={seconds}
+          onChange={handleScrub}
+          style={{ flex: 1 }}
+        />
+        <span style={{ color: '#888', fontSize: 11, fontVariantNumeric: 'tabular-nums', minWidth: 36, textAlign: 'right' }}>
+          {Math.floor(seconds / 60)}:{String(Math.floor(seconds % 60)).padStart(2, '0')}
+        </span>
+      </div>
     </div>
   )
 }
