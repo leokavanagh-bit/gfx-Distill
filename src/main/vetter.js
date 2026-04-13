@@ -42,9 +42,8 @@ export async function scanVideo(filePath) {
 
       for (const word of extractWords(text)) {
         if (shouldSkip(word)) continue
-        const key = `${word}:${timecode}`
-        if (seen.has(key)) continue
-        seen.add(key)
+        if (seen.has(word)) continue
+        seen.add(word)
         if (!spell.correct(word)) {
           flags.push({ word, timecode })
         }

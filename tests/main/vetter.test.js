@@ -85,7 +85,6 @@ describe('scanVideo', () => {
     const result = await scanVideo('/test.mxf')
     expect(result.status).toBe('warnings')
     expect(result.flags).toContainEqual({ word: 'recieve', timecode: 0 })
-    expect(result.flags).toContainEqual({ word: 'recieve', timecode: 1 })
   })
 
   it('deduplicates the same word at the same timecode', async () => {
@@ -96,14 +95,13 @@ describe('scanVideo', () => {
     expect(result.flags.filter((f) => f.timecode === 0)).toHaveLength(1)
   })
 
-  it('keeps the same word at different timecodes as separate flags', async () => {
-    mockGetDuration.mockResolvedValue(2)
+  it('reports the same word only once even if it appears across multiple frames', async () => {
+    mockGetDuration.mockResolvedValue(3)
     mockRecognize.mockResolvedValue({ data: { text: 'recieve' } })
     mockCorrect.mockReturnValue(false)
     const result = await scanVideo('/test.mxf')
-    expect(result.flags).toHaveLength(2)
-    expect(result.flags[0].timecode).toBe(0)
-    expect(result.flags[1].timecode).toBe(1)
+    expect(result.flags).toHaveLength(1)
+    expect(result.flags[0].word).toBe('recieve')
   })
 
   it('caps frame extraction at 30 frames regardless of video duration', async () => {
